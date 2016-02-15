@@ -4,11 +4,12 @@ import os
 from koki_plugin.utils.git_utils import git_diff, git_log, is_inside_repo, git_get_root_path
 
 PLUGIN_METADATA_PATH = os.path.dirname(__file__) + "/.data"
-METADATA_FILE = "/myinfo.json"
+METADATA_FILE = "/projects_info.json"
 
 class Koki(object):
 
     def __init__(self, vim):
+        self._validate_initial_data()
         self.vim = vim
 
     def project_command_completion(self):
@@ -64,3 +65,8 @@ class Koki(object):
         self.vim.command("setlocal bufhidden=hide")
         self.vim.command("setlocal noswapfile")
 
+    def _validate_initial_data(self):
+        if not os.path.isfile(PLUGIN_METADATA_PATH + METADATA_FILE):
+            initial_metadata = {"projects": []}
+            with open(PLUGIN_METADATA_PATH + METADATA_FILE, "w") as fd:
+                json.dump(initial_metadata, fd, indent=4)
