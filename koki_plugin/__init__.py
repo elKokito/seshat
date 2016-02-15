@@ -15,16 +15,28 @@ class KokiFacade(object):
         self.vim = vim
         self.koki = Koki(vim)
 
+    """
+    functions
+    """
     @neovim.function("MyFunc", sync=True)
     def MyFunc(self, *args, **kargs):
         return self.koki.project_command_completion()
 
 
+    """
+    projects commands
+    """
     @neovim.command("Project", complete='customlist,MyFunc', range="", nargs="1", sync=False)
     def ProjectCommand(self, args, range):
         self.koki.project_command(args[0])
 
+    @neovim.command("Save", range="", nargs="*", sync=False)
+    def SaveCommand(self, args, range):
+        self.koki.save_command()
 
+    """
+    git commands
+    """
     @neovim.command("Diff", range="", nargs="*", sync=True)
     def DiffCommand(self, args, range):
         # get current HEAD and remote HEAD

@@ -12,28 +12,48 @@ class Koki(object):
         self._validate_initial_data()
         self.vim = vim
 
-    def project_command_completion(self):
-        projects = self._read_json(METADATA_FILE)
-        if projects is None:
-            return []
-        else:
-            return projects["projects"]
-
     def project_command(self, project_name):
         project_path = self.vim.command_output("echo expand('%:p:h')").split("\n")[1]
         project_name = project_name
         projects = self._read_json(METADATA_FILE)
         if project_name in projects["projects"]:
             # open project as it was
-            return
+            # with tabs
+            project = projects[project_name]
+            for tab in project["tabs"]:
+                self.vim.command("tabnew " + tab)
+            self.vim.command("tabclose 1")
         else:
             # check if its a git repo
-            projects[project_name] = {"project_path": project_path, "tags": ""}
+            projects[project_name] = {"project_path": project_path, "tags_file_path": "", "tabs": []}
             projects["projects"].append(project_name)
             if is_inside_repo():
                 project_git_root_path = git_get_root_path()
                 projects[project_name].update({"git_root_path": project_git_root_path})
             self._write_to_json(projects, METADATA_FILE)
+
+    def project_command_completion(self):
+        projects = self._read_json(METADATA_FILE)
+        return projects["projects"]
+
+    def save_command(self):
+        # get tabs on current session
+        tabs = []
+        for tab in self.vim.tabpages:
+            tabs.append(tab.window.buffer.name)
+
+        # get current session got from current path
+        project_name = self._get_project_from_path(str(self.vim.current.buffer.name))
+        if project_name == None:
+            # TODO
+            # display error message
+            pass
+        else:
+            projects = self._read_json(METADATA_FILE)
+            projects[project_name].update({"tabs": tabs})
+            self._write_to_json(projects, METADATA_FILE)
+
+
 
     def diff_command(self):
         diff_list = git_diff()
@@ -70,3 +90,10 @@ class Koki(object):
             initial_metadata = {"projects": []}
             with open(PLUGIN_METADATA_PATH + METADATA_FILE, "w") as fd:
                 json.dump(initial_metadata, fd, indent=4)
+
+    def _get_project_from_path(self, path):
+        projects = self._read_json(METADATA_FILE)
+        for project_name in projects["projects"]:
+            if path.find(project_name) != -1:
+                return project_name
+        return None
