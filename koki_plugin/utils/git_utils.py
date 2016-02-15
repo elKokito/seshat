@@ -11,6 +11,19 @@ def git_log():
     commit_block = _make_commit_block(log_list)
     return commit_block
 
+def is_inside_repo():
+    cmd = ["git", "rev-parse"]
+    cmd_status = subprocess.call(cmd)
+    if cmd_status == 0:
+        return True
+    else:
+        return False
+
+def git_get_root_path():
+    cmd = ["git", "rev-parse", "--show-toplevel"]
+    git_root_path = subprocess.check_output(cmd, universal_newlines=True).split("\n")
+    return git_root_path[0]
+
 def _make_commit_block(log):
     lines = log.splitlines()
     commit_block = []

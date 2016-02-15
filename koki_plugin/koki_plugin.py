@@ -1,7 +1,7 @@
 import json
 import os
 
-from koki_plugin.utils.git_utils import git_diff, git_log
+from koki_plugin.utils.git_utils import git_diff, git_log, is_inside_repo, git_get_root_path
 
 PLUGIN_METADATA_PATH = os.path.dirname(__file__) + "/.data"
 METADATA_FILE = "/myinfo.json"
@@ -26,27 +26,29 @@ class Koki(object):
             # open project as it was
             return
         else:
-            projects["projects"].append(project_name)
+            # check if its a git repo
             projects[project_name] = {"project_path": project_path, "tags": ""}
+            projects["projects"].append(project_name)
+            if is_inside_repo():
+                project_git_root_path = git_get_root_path()
+                projects[project_name].update({"git_root_path": project_git_root_path})
             self._write_to_json(projects, METADATA_FILE)
 
     def diff_command(self):
         diff_list = git_diff()
         self._new_scratch_buffer()
         self.vim.current.buffer[:] = diff_list
-        self.vim.command("set nomodifiable")
 
     def log_command(self):
         self._new_scratch_buffer()
         log_list = git_log()
         # TODO show appropriate message
         self.vim.current.buffer[:] = log_list[0]
-        self.vim.command("set nomodifiable")
 
 
     def _write_to_json(self, dict, filename):
         with open(PLUGIN_METADATA_PATH + filename, "w") as fd:
-            json.dump(dict, fd)
+            json.dump(dict, fd, indent=4)
 
     def _read_json(self, filename):
         with (open(PLUGIN_METADATA_PATH + filename, "r")) as fd:
