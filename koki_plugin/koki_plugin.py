@@ -45,23 +45,40 @@ class Koki(object):
         # get current session got from current path
         project_name = self._get_project_from_path(str(self.vim.current.buffer.name))
         if project_name == None:
-            # TODO
             # display error message
-            pass
+            self.vim.command("echo 'Not in a project directory'")
         else:
             projects = self._read_json(METADATA_FILE)
             projects[project_name].update({"tabs": tabs})
             self._write_to_json(projects, METADATA_FILE)
 
+    def VimEnter_autocmd(self):
+        # rename buffer
+        self.vim.command("file seshat")
+        projects = self._read_json(METADATA_FILE)
+        # set buffer as scractch
+        self.vim.command("setlocal buftype=nofile")
+        self.vim.command("setlocal bufhidden=hide")
+        self.vim.command("setlocal noswapfile")
+        # clean command line
+        self.vim.command("echo ''")
+
+        buffer = []
+        # write project per line
+        for i in range(len(projects["projects"])):
+            project_name = projects["projects"][i]
+            self.vim.command("nnoremap <buffer> " + str(i) + " :Project " + project_name + "<CR>")
+            buffer.append("[" + str(i) + "] : " + project_name)
+        self.vim.current.buffer[:] = buffer
 
 
     def diff_command(self):
         diff_list = git_diff()
-        self._new_scratch_buffer()
+        self._new_scratch_buffer("git diff")
         self.vim.current.buffer[:] = diff_list
 
     def log_command(self):
-        self._new_scratch_buffer()
+        self._new_scratch_buffer("git log")
         log_list = git_log()
         # TODO show appropriate message
         self.vim.current.buffer[:] = log_list[0]
@@ -79,8 +96,8 @@ class Koki(object):
                 json_object = None
         return json_object
 
-    def _new_scratch_buffer(self):
-        self.vim.command("tabnew")
+    def _new_scratch_buffer(self, name):
+        self.vim.command("tabnew " + name)
         self.vim.command("setlocal buftype=nofile")
         self.vim.command("setlocal bufhidden=hide")
         self.vim.command("setlocal noswapfile")
@@ -94,6 +111,6 @@ class Koki(object):
     def _get_project_from_path(self, path):
         projects = self._read_json(METADATA_FILE)
         for project_name in projects["projects"]:
-            if path.find(project_name) != -1:
+            if path.find(projects[project_name]["project_path"]) != -1:
                 return project_name
         return None

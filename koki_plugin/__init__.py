@@ -45,3 +45,15 @@ class KokiFacade(object):
     @neovim.command("LogStat", range="", nargs="*", sync=True)
     def LogStatCommand(self, args, range):
         self.koki.log_command()
+
+    """
+    autocmds
+    """
+    @neovim.autocmd("VimEnter", pattern="*", sync=True)
+    def VimEnterAutoCmd(self):
+        # if entered vim with file to open
+        args = self.vim.eval("expand('%')")
+        if args == "":
+            self.koki.VimEnter_autocmd()
+        else:
+            pass
