@@ -1,9 +1,10 @@
 general
 =======
 
-* make project page
-* selectable project display
 * async fetch on all projects
+* bookmark command
+* ~~make project page~~
+* ~~selectable project display~~
 
 git
 ===
@@ -23,7 +24,7 @@ tags
 last session tabs
 =================
 
-* register tabs(buffers?) on close project
 * define a close project command
-* define a save session project command
+* ~~register tabs(buffers?) on close project~~
+* ~~define a save session project command~~
 
