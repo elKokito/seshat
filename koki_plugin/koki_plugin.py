@@ -121,6 +121,14 @@ class Koki(object):
 
         self.vim.current.buffer[:] = buffer
 
+        # highlighting
+        for project in projects:
+            self.vim.command("syn keyword project " + project)
+        for bookmark in bookmarks:
+            self.vim.command("syn keyword bookmark " + bookmark)
+        self.vim.command("hi project ctermfg=yellow")
+        self.vim.command("hi bookmark ctermfg=green")
+
     def diff_command(self):
         diff_list = git_diff()
         self._new_scratch_buffer("git diff")
